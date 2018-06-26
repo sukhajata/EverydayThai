@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+    <head>
+		<meta http-equiv="Content-Security-Policy" content="default-src *; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; media-src *; img-src 'self' data:">
+        <meta name="format-detection" content="telephone=no">
+        <meta name="msapplication-tap-highlight" content="no">
+    <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width">
+		<script src="js/jquery.js"></script>
+        <title>Everyday Language</title>
+		<style type="text/css">
+img.flag {
+	margin: 3px auto;
+  display:block;
+	width: 60px;
+}
+
+div.language {
+	margin-bottom:25px;
+}
+
+button.choice-english {
+	width:100%;
+	padding:7px;
+	border: none;
+	color: white;
+	background-color: #303F9F; /* Dark blue */
+	padding: 15px 32px;
+	text-align: center;
+	text-decoration: none;
+	display: inline-block;
+	margin-bottom:3px;
+	font-size: 16px;
+	cursor: pointer;
+}
+
+			button.choice-english.active, button.choice-english:hover {
+				background-color: #BBDEFB;
+				color: #757575;
+			}
+
+			button.accordion {
+				background-color: #eee;
+				color: #444;
+				cursor: pointer;
+				padding: 18px;
+				width: 100%;
+				border: none;
+				text-align: left;
+				outline: none;
+				font-size: 16px;
+				margin-bottom:3px;
+				transition: 0.4s;
+			}
+
+			button.accordion.active, button.accordion:hover {
+				background-color: #ccc; 
+			}
+
+			div.panel {
+				padding: 0 18px;
+				display: none;
+				background-color: white;
+			}
+		</style>
+		<script>
+
+			function launchApp(id) {
+				localStorage.setItem('lid', id);
+				document.location = "db.html";
+			}
+
+			document.addEventListener('deviceready', function () {
+				if (localStorage.getItem('lid') !== null && localStorage.getItem('lid') !== '' ) {
+					document.location = "db.html";
+				} else {
+					$('#main').load("http://sukhajata.com/el/languages.php");
+				}
+
+				/*
+				//setup downloader for audio files
+				downloader.init({
+					folder: "elAudio", 
+					fileSystem : "cordova.file.*",
+					unzip: true,
+					delete : true, //delete after unzip
+					noMedia : true, //prevent gallery from scanning files on android
+					wifiOnly : false
+				});*/
+
+			}, false);
+
+		</script>
+    </head>
+    <body>
+		<div id="main">
+
+		</div>
+		
+        <script type="text/javascript" src="cordova.js"></script>
+        <script type="text/javascript" src="js/index.js"></script>
+    </body>
+</html>

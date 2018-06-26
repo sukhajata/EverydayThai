@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="utf-8">
+<meta name="robots" content="index, follow">
+<script src="js/jquery.js"></script>
+<script src="js/helper.js"></script>
+<style type="text/css">
+body {
+	font-family: "Lato", sans-serif;
+	font-size: 100%;
+	margin:0;
+}
+
+.navbar {
+  background-color: cornflowerblue;
+  position: fixed;
+  top: 0;
+  width: 100%;
+  padding:5px 0;
+  z-index:10;
+}
+
+span.menu {
+	font-size:150%;
+	line-height: 25px;
+	color:white;
+}
+
+span.subcategory {
+	font-size:110%;
+	font-weight: 500;
+	color:white;
+}
+
+input[type=search] {
+	display:none;
+	font-size:100%;
+	padding:2px;
+	width:100%;
+}
+
+input.searchbox {
+	display:none;
+	font-size:100%;
+	padding:2px;
+	position:absolute;
+	width:150px;
+	right:50px;
+	top:15px;
+}
+
+img.search, img.search-go {
+	position: absolute;
+	right:45px;
+	top:12px;
+	width:25px;
+}
+
+img.play, img.pause {
+	position : absolute;
+	top:12px;
+	width:25px;
+}
+
+img.pause {
+	display:none;
+}
+
+img.search-go {
+	display: none;
+}
+
+img.favourite, img.favourite-active {
+	position: absolute;
+	width:25px;
+	right:10px;
+	top:7px;
+}
+
+div.main {
+	margin:52px 6px 6px 6px;
+}
+
+div.main2 {
+	margin:0 6px 0 6px;
+}
+/* side menu */
+
+.sidenav {
+    height: 100%;
+    width: 0;
+    position: fixed;
+    z-index: 11;
+    top: 0;
+    left: 0;
+    background-color: #111;
+    overflow-x: hidden;
+    transition: 0.2s;
+    padding-top: 60px;
+}
+
+a.side, a.sub {
+    padding: 8px 12px 8px 20px;
+    text-decoration: none;
+    font-size: 120%;
+    color: #818181;
+    display: block;
+    transition: 0.3s;
+}
+
+a.side:hover, a.side:active {
+    color: #6ed3cf;
+}
+
+a.sub:hover, a.sub:active {
+	color:#303F9F;
+}
+
+.sidenav .closebtn {
+    position: absolute;
+    top: 10px;
+    right: 20px;
+    text-decoration: none;
+    font-size: 200%;
+    color: #818181;
+    display: block;
+    transition: 0.3s;
+}
+
+a.home {
+	position: absolute;
+    top: 15px;
+    left: 20px;
+    text-decoration: none;
+    font-size: 200%;
+    display: block;
+    transition: 0.3s;
+}
+
+img.home {
+	height:35px;
+}
+
+
+
+@media screen and (max-height: 450px) {
+  .sidenav {padding-top: 15px;}
+  .sidenav a {font-size: 18px;}
+}
+
+
+div.thai {
+	background-color: darkslateblue; 
+	color: white;
+	padding:7px 39px 7px 7px;
+	position: relative;
+	z-index: 2;
+}
+
+div.english {
+	background-color: #e1e8f0;
+	padding:7px 7px 7px 7px;
+}
+
+img.play1, img.playing {
+	height:40px;
+	padding-left:7px;
+}
+
+img.playing {
+	display:none;
+}
+
+audio {
+	width:100px;
+	position: absolute;
+	z-index:-1;
+}
+
+div.notes {
+	background-color: #6ed3cf;
+	padding:7px 39px 7px 7px;
+}
+
+div.frame {
+	padding: 5px;
+	text-align: left;
+	z-index: 0;
+}
+
+div.frame-highlight {
+	background-color:#6ed3cf;
+	z-index: 0;
+}
+
+button.accordion {
+    background-color: #eee;
+    color: #444;
+    cursor: pointer;
+    padding: 18px;
+    width: 100%;
+    border: none;
+    text-align: left;
+    outline: none;
+    font-size: 16px;
+	margin-bottom:3px;
+    transition: 0.4s;
+}
+
+button.accordion.active, button.accordion:hover {
+    background-color: #ccc; 
+}
+
+div.panel {
+    padding: 0 18px;
+    display: none;
+    background-color: white;
+}
+
+/* toggle switch */
+div.toggle {
+	position :absolute;
+	top:15px;
+	left:80px;
+}
+img.icon {
+	height:35px;
+}
+/* The switch - the box around the slider */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 60px;
+  height: 34px;
+}
+
+/* Hide default HTML checkbox */
+.switch input {display:none;}
+
+/* The slider */
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: cornflowerblue;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 26px;
+  width: 26px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+input:checked + .slider {
+  background-color: cornflowerblue;
+}
+
+input:focus + .slider {
+  box-shadow: 0 0 1px cornflowerblue;
+}
+
+input:checked + .slider:before {
+  -webkit-transform: translateX(26px);
+  -ms-transform: translateX(26px);
+  transform: translateX(26px);
+}
+
+/* Rounded sliders */
+.slider.round {
+  border-radius: 34px;
+}
+
+.slider.round:before {
+  border-radius: 50%;
+}
+
+</style>
+<script>
+//var key = 'trnsl.1.1.20171115T123047Z.5acf8ed859ec79a6.3e9b2b8033e398e0c7b08a91b094c082fd753bbf';
+var db;
+var filePath;
+var playlist;
+var frames;
+var pause;
+var playing;
+var playingid;
+
+function playaudio(id) {
+	try {
+		if (playing) {
+			playing.pause();
+			playing.currentTime = 0;
+			$('#playing-' + playingid).hide();
+			$('#play-' + playingid).show();
+		}
+		$('#play').show();
+		$('#pause').hide();
+		var audio = document.getElementById('audio-' + id);
+		playing = audio;
+		playingid = id;
+		audio.onended = function() {
+			playing = undefined;
+			$('#playing-' + id).hide();
+			$('#play-' + id).show();
+		}
+		audio.play();
+		$('.frame').removeClass('frame-highlight');
+		$('#frame-' + id).addClass('frame-highlight');
+		$('#play-' + id).hide();
+		$('#playing-' + id).show();
+	} catch (error) {
+		alert(error);
+	}
+
+}
+
+function playAll() {
+	pause = false;
+	if (playing) {
+		playing.pause();
+		playing.currentTime = 0;
+		playing = undefined;
+		$('#playing-' + playingid).hide();
+		$('#play-' + playingid).show();
+	}
+	$('#play').hide();
+	$('#pause').show();
+	if (playlist == undefined || playlist.length == 0) {
+		playlist = $("audio").toArray();
+		frames = $(".frame").toArray();
+	}
+	playNext();
+}
+
+function playNext() {
+	if (!pause) {
+		if ((elem = playlist.shift()) != null) {
+		
+			var frame = frames.shift();
+			playing = elem;
+			
+			elem.onended = function(){
+				playing = undefined;
+				playNext();
+			};
+			$('.frame').removeClass('frame-highlight');
+			$('#' + frame.id).addClass('frame-highlight');
+			elem.play();
+
+			$('html,body').animate({
+				scrollTop: $('#' + frame.id).offset().top - 60
+			});
+		} else {
+			//finished
+			$('#play').show();
+			$('#pause').hide();
+		}
+	}
+}
+
+function pauseAll() {
+	pause = true;
+	if (playing) {
+		playing.pause();
+		playing.currentTime = 0;
+	}
+	$('#pause').hide();
+	$('#play').show();
+}
+
+function showPanel(id) {
+	if ($('#div' + id).is(':visible')) {
+		$("#div" + id).hide();	
+	} else {
+		$('div.panel').each(function() {
+			$(this).hide();
+		});
+		$("#div" + id).show();
+	}
+	return false;
+}
+
+function GetURLParameter(sParam) {
+    var sPageURL = window.location.search.substring(1);
+    var sURLVariables = sPageURL.split('&');
+    for (var i = 0; i < sURLVariables.length; i++) 
+    {
+        var sParameterName = sURLVariables[i].split('=');
+        if (sParameterName[0] == sParam) 
+        {
+            return sParameterName[1];
+        }
+    }
+}
+
+function favourite(pid) {
+	var element = $('#fav-' + pid);
+
+	if (element.attr("class") == "favourite-active") {
+		db.transaction(function(tx) {
+			tx.executeSql("UPDATE phrases SET isFavourite = '0' WHERE pid = '" + pid + "'");
+		});
+		element.attr("src", "img/ic_favourite.png");
+		element.removeClass("favourite-active").addClass("favourite");
+	} else {
+		db.transaction(function(tx) {
+			tx.executeSql("UPDATE phrases SET isFavourite = '1' WHERE pid = '" + pid + "'");
+		});
+		element.attr("src", "img/ic_favourite_active.png");
+		element.removeClass("favourite").addClass("favourite-active");
+	}
+}
+
+
+function search () {
+	resetUI();
+
+	var txt = $('#searchbox').val();
+	$('#searchbox').val('');
+	$('#searchbox').hide();
+	$('#search').show();
+
+	db.transaction(function(tx){
+		tx.executeSql("SELECT pid FROM phrases_v WHERE firstLanguage MATCH ?",
+			[txt], 
+			function(tx, results) {
+				var ids = "";
+				for (var i = 0; i < results.rows.length; i++) {
+					ids += "'" + results.rows[i].pid + "',";
+				}
+				ids = ids.slice(0,-1);
+
+				var sql = "SELECT * FROM phrases WHERE pid IN (" + ids + ")";
+				tx.executeSql(sql,[],
+					function(tx, results2) {
+						for (var i = 0; i < results2.rows.length; i++) {
+							var phrase = results2.rows[i];
+							var filePath = getFilePath(parseInt(phrase.sid));
+							addPhrase(phrase, filePath, 'main');
+						}
+					},function(tx, error) {
+						alert(error.message);
+					}
+				);
+
+			}, function(tx, error) {
+				alert(error.message);
+			}
+		);
+	});
+}
+
+function resetUI() {
+	closeNav();
+
+	$('#main').empty();
+	$('#main2').empty();
+	$('#subcategory').show();
+	$('#searchbox').hide();
+	$('#search').show();
+	$('#search-go').hide();
+
+	playlist = undefined;
+	$('#play').show();
+	$('#pause').hide();
+}
+
+function getFilePath(sid) {
+	var lid = parseInt(localStorage.getItem('lid'));
+	var filePath = "http://sukhajata.com/audio/";
+	if (lid == 3 || lid == 4){
+		filePath += "lao/";
+	} else {
+		var filePath = "http://sukhajata.com/audio/thai/";
+		if (sid > 43) {
+			filePath += "songs/";
+		} else {
+			filePath += localStorage.getItem('voice') + "/";
+		}
+	}
+
+	return filePath;
+}
+
+function loadContent(sid) {
+
+	resetUI();
+
+	var filePath = getFilePath(parseInt(sid));
+
+	db.transaction(function(tx) {
+		tx.executeSql("SELECT c_name FROM subcategories WHERE id = '" + sid + "'", [], function(tx, results){
+			var subcategoryName = results.rows[0].c_name;
+			$('#subcategory').html(subcategoryName);
+		});
+	});
+
+	db.transaction(function(tx) {
+		var sql = "SELECT * FROM phrases WHERE sid = '" + sid + "'";
+		tx.executeSql(sql, [], function(tx, results) {
+			for (var i = 0; i < 8; i++) {
+				var phrase = results.rows[i];
+				addPhrase(phrase, filePath, 'main');
+			}
+			
+			for (var i = 8; i < results.rows.length; i++) {
+				var phrase = results.rows[i];
+				addPhrase(phrase, filePath, 'main2');
+			}
+			
+		}, function(tx, error) {
+			console.log(error);
+		});
+	});
+
+	$("html, body").animate({ scrollTop: 0 }, "fast");
+
+	//load ads
+	var lid = localStorage.getItem('lid');
+	$('#aff1').load("http://sukhajata.com/el2/affy.php",
+	{
+		lanId : lid,
+		pos : 1
+	}, function() {
+		$.getScript("//z-na.amazon-adsystem.com/widgets/onejs?MarketPlace=US");
+	});
+	
+	$('#aff2').load("http://sukhajata.com/el2/affy.php",
+	{
+		lanId : lid,
+		pos : 2
+	});
+	
+}
+
+function addPhrase(phrase, filePath, div_id) {
+	var voice = localStorage.getItem('voice');
+	var thai = phrase.thai_F;
+	var romanisation = phrase.romanisation_F;
+	var fileName = phrase.fileName_F;
+	if (voice == "male") {
+		thai = phrase.thai_M;
+		romanisation = phrase.romanisation_M;
+		fileName = phrase.fileName_M;
+	}
+	var content = '<div class="frame" id="frame-' + phrase.pid + '" onclick="playaudio(\'' + phrase.pid + '\')">' +
+		'<div class="thai">' + phrase.firstLanguage;
+		if (phrase.isFavourite == "1") {
+			content += '<img id="fav-' + phrase.pid + '" class="favourite-active" src="http://sukhajata.com/images/ic_favourite_active.png" onclick="favourite(\'' + phrase.pid + '\')"/>';
+		} else {
+			content += '<img id="fav-' + phrase.pid + '" class="favourite" src="http://sukhajata.com/images/ic_favourite.png" onclick="favourite(\'' + phrase.pid + '\')"/>';
+		}
+		content += '<br/>' + thai +
+		'<audio preload="auto" id="audio-' + phrase.pid + '" src="' + filePath + fileName + '.mp3"></audio>' +
+		'</div>' +
+		'<div class="english">' +
+		'<table style="border-spacing:0"><tr><td style="width:100%">' + romanisation + '</br>';
+		if (phrase.literalTranslation != null && phrase.literalTranslation.length > 0) {
+			content = content + '<span style="font-style:italic">(' + phrase.literalTranslation + ')</span>';
+		}
+		content += '</td><td style="width:50px">' +
+		'<img id="play-' + phrase.pid + '" src="http://sukhajata.com/images/ic_play1.png" class="play1"/>' +
+		'<img id="playing-' + phrase.pid + '" src="http://sukhajata.com/images/ic_playing.png" class="playing"/>' +
+		'</td></tr></table></div>';
+		if (phrase.notes != null && phrase.notes.length > 0) {
+			content = content + '<div class="notes">' + phrase.notes + '</div>';
+		}
+		
+		$('#' + div_id).append(content + '</div></div>');
+}
+
+function changeLanguage(){
+	//check for internet connection first
+	if (navigator.onLine) {
+		localStorage.setItem('lid', "");
+		window.location = "index.html";
+	} else {
+		alert("No internet connection.");
+	}
+}
+
+function changeVoice() {
+	var voice = localStorage.getItem('voice');
+	if (voice == 'male') {
+		localStorage.setItem('voice', 'female');
+		$('#slider').prop("checked", true);
+	} else {
+		localStorage.setItem('voice', 'male');
+		$('#slider').prop("checked", false);
+	}
+
+	$('#main').empty();
+	$('#main2').empty();
+}
+
+function loadSideNav() {
+
+	var top = '<a class="home" href="#" onclick="return changeLanguage()"><img class="home" src="http://sukhajata.com/images/home.ico"/></a>' +
+		'<div class="toggle">' +
+		'<img class="icon" src="http://sukhajata.com/images/ic_male.png"/>' +
+		'<label class="switch">';
+	if (localStorage.getItem('voice') == 'male') {
+		top += '<input type="checkbox" onclick="changeVoice()">';
+	} else {
+		top += '<input type="checkbox" onclick="changeVoice()" checked>';
+	}
+  	top += '<span class="slider round"></span>' +
+		'</label>' +
+		'<img class="icon" src="http://sukhajata.com/images/ic_female.png"/>' +
+		'</div>' +
+		'<a class="closebtn" href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>';
+	$('#sidenav').html(top);
+
+	db.transaction(function(tx) {
+		var sql = "SELECT * FROM categories";
+		tx.executeSql(sql, [], function(tx, results){
+			if (results.rows.length == 0) {
+				window.location = "db.html";
+			}
+			for (var i = 0; i < results.rows.length; i++) {
+				var category = results.rows[i];
+
+				var inner =  '<a class="side" href="#" onclick="return showPanel(' + category.id + ')">' + category.c_name + '</a>' +
+					'<div class="panel" id="div' + category.id + '" ></div>';
+				$('#sidenav').append(inner);
+				getSubCategories(category);
+			}
+			var bottom = '<a class="side" href="#" onclick="return showFavourites()" >Favourites</a>';
+			$('#sidenav').append(bottom);
+			openNav();
+		}, function (tx, error) {
+			alert("load side nav " + error.message);
+		});
+	});
+
+}
+
+function getSubCategories(result) {
+	db.transaction(function(tx) {
+		tx.executeSql(
+			"SELECT * FROM subcategories WHERE cid = ?", [result.id], function(tx, results2) {
+				var inner = "";
+				for (var j = 0; j < results2.rows.length; j++) {
+					var subcategory = results2.rows[j];
+					inner += '<a class="sub" id="' + subcategory.id + '" onclick="loadContent('  + subcategory.id + ')">' + subcategory.c_name + '</a>';
+				}
+
+				$('#div' + result.id).html(inner);
+			}, function(tx, error){
+				alert("get sub categories " + error.message);
+		});
+	});
+}
+
+function showFavourites() {
+	resetUI();
+
+	db.transaction(function(tx) {
+		var sql = "SELECT * FROM phrases WHERE isFavourite = '1'";
+		tx.executeSql(sql, 
+		[], 
+		function(tx, results) {
+			for (var i = 0; i < results.rows.length; i++) {
+				var phrase = results.rows[i];
+				var filePath = getFilePath(parseInt(phrase.sid));
+				addPhrase(phrase, filePath, 'main');
+			}
+		}, 
+		function(tx, error) {
+			alert(error.message);
+		});
+	});
+
+	$("html, body").animate({scrollTop:0}, "fast");
+}
+
+function openNav() {
+	document.getElementById("sidenav").style.width = "250px";
+}
+
+function closeNav() {
+	document.getElementById("sidenav").style.width = "0";
+}
+
+function openSearchBox() {
+	$('#subcategory').hide();
+	$('#searchbox').show();
+	$('#search').hide();
+	$('#searchbox').focus();
+	//$('#search-go').show();
+}
+
+document.addEventListener('deviceready', function () {
+	if (localStorage.getItem('lid') == undefined || localStorage.getItem('lid') == null 
+	|| lid == localStorage.getItem('') ){
+		//window.location = "index.html";
+	} 
+
+	var lid =  parseInt(localStorage.getItem('lid'));
+	var voice = localStorage.getItem('voice');
+	if (voice == undefined || voice == null || voice == '') {
+		localStorage.setItem('voice', 'female');
+	}
+	var name = getDBName(lid);
+	
+		
+	try {
+		db = window.sqlitePlugin.openDatabase({
+			name: name,
+			location: 'default',
+			androidDatabaseImplementation: 2
+		});
+		
+
+		loadSideNav();
+
+	$('#searchbox').bind('keyup', function(e) {
+		if (e.keyCode == 13) {
+			search();
+		}
+	});
+
+		/*
+		if (AdMob) {
+			
+			var admobid = {};
+			if( /(android)/i.test(navigator.userAgent) ) { // for android & amazon-fireos
+				admobid = {
+					banner: 'ca-app-pub-8944555977163246/4042150625'
+				};
+			}
+			
+			AdMob.createBanner({
+				adId: admobid.banner,
+				position: AdMob.AD_POSITION.BOTTOM_CENTER,
+				autoShow: true 
+			});
+		}*/
+
+	} catch(error) {
+		alert(error);
+	} 
+	
+}, false);
+</script>
+</head>
+<body>
+	<div class="navbar">
+		<table style="width:100%">
+			<tr>
+				<td style="width:30px;padding-left:10px">
+					<span class="menu" onclick="openNav()">&#9776;</span>
+				</td>
+				<td>
+					<span id="subcategory" class="subcategory"></span>
+					<input type="search" id="searchbox" />
+					<img class="search" id="search" src="http://sukhajata.com/images/ic_search.png" onclick="openSearchBox()"/>		
+				</td>
+				<td style="width:30px;">
+					<img class="play" id="play" src="http://sukhajata.com/images/ic_play.png" onclick="playAll()"/>
+					<img class="pause" id="pause" src="http://sukhajata.com/images/ic_pause.png" onclick="pauseAll()"/>					
+				</td>
+			</tr>
+		</table>
+		<img class="search-go" id="search-go" src="img/ic_go.png" onclick="search()"/>
+	</div>
+	<div id="sidenav" class="sidenav">
+	</div>
+
+	<div id="main" class="main">
+	</div>
+
+	<script type="text/javascript" src="cordova.js"></script>
+    <script type="text/javascript" src="js/index.js"></script>
+</body>
+</html>

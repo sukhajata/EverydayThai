@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="utf-8">
+<meta name="robots" content="index, follow">
+<script src="js/jquery.js"></script>
+<style type="text/css">
+body {
+	font-family: "Lato", sans-serif;
+	font-size: 100%;
+	margin:0;
+}
+
+.navbar {
+  background-color: cornflowerblue;
+  position: fixed;
+  top: 0;
+  width: 100%;
+  padding:10px 0 10px 10px;
+  z-index:10;
+}
+
+span.menu {
+	font-size:150%;
+	color:white;
+	padding-right:10px;
+}
+
+span.subcategory {
+	font-size:110%;
+	font-weight: 500;
+	color:white;
+}
+
+input.searchbox {
+	display:none;
+	font-size:100%;
+	padding:2px;
+	position:absolute;
+	width:150px;
+	right:50px;
+	top:15px;
+}
+
+img.search, img.search-go {
+	position: absolute;
+	right:20px;
+	top:15px;
+	width:25px;
+}
+
+img.search-go {
+	display: none;
+}
+
+img.favourite, img.favourite-active {
+	position: absolute;
+	width:25px;
+	right:7px;
+	top:7px;
+}
+
+div.main {
+	margin:52px 6px 6px 6px;
+}
+
+div.main2 {
+	margin:0 6px 0 6px;
+}
+/* side menu */
+
+.sidenav {
+    height: 100%;
+    width: 0;
+    position: fixed;
+    z-index: 11;
+    top: 0;
+    left: 0;
+    background-color: #111;
+    overflow-x: hidden;
+    transition: 0.2s;
+    padding-top: 60px;
+}
+
+a.side, a.sub {
+    padding: 8px 12px 8px 20px;
+    text-decoration: none;
+    font-size: 120%;
+    color: #818181;
+    display: block;
+    transition: 0.3s;
+}
+
+a.side:hover, a.side:active {
+    color: #6ed3cf;
+}
+
+a.sub:hover, a.sub:active {
+	color:#303F9F;
+}
+
+.sidenav .closebtn {
+    position: absolute;
+    top: 15px;
+    right: 25px;
+    text-decoration: none;
+    font-size: 200%;
+    color: #818181;
+    display: block;
+    transition: 0.3s;
+}
+
+a.home {
+	position: absolute;
+    top: 18px;
+    left: 20px;
+    text-decoration: none;
+    font-size: 200%;
+    display: block;
+    transition: 0.3s;
+}
+
+@media screen and (max-height: 450px) {
+  .sidenav {padding-top: 15px;}
+  .sidenav a {font-size: 18px;}
+}
+
+
+div.thai {
+	background-color: darkslateblue; 
+	color: white;
+	padding:7px 39px 7px 7px;
+	position: relative;
+	z-index: 2;
+}
+
+div.english {
+	background-color: #e1e8f0;
+	padding:7px 39px 7px 7px;
+}
+
+div.notes {
+	background-color: #6ed3cf;
+	padding:7px 39px 7px 7px;
+}
+
+div.frame {
+	padding: 5px;
+	text-align: left;
+	z-index: 0;
+}
+
+div.frame-highlight {
+	background-color:#6ed3cf;
+	z-index: 0;
+}
+
+button.accordion {
+    background-color: #eee;
+    color: #444;
+    cursor: pointer;
+    padding: 18px;
+    width: 100%;
+    border: none;
+    text-align: left;
+    outline: none;
+    font-size: 16px;
+	margin-bottom:3px;
+    transition: 0.4s;
+}
+
+button.accordion.active, button.accordion:hover {
+    background-color: #ccc; 
+}
+
+div.panel {
+    padding: 0 18px;
+    display: none;
+    background-color: lightgray;
+}
+
+</style>
+<script>
+//var key = 'trnsl.1.1.20171115T123047Z.5acf8ed859ec79a6.3e9b2b8033e398e0c7b08a91b094c082fd753bbf';
+var db;
+
+function playaudio(id) {
+	try {
+		var audio = document.getElementById('audio-' + id);
+		audio.play();
+	} catch (error) {
+		alert(error);
+	}
+	$('.frame').removeClass('frame-highlight');
+	$('#frame-' + id).addClass('frame-highlight');
+}
+
+function showPanel(id) {
+	if ($('#div' + id).is(':visible')) {
+		$("#div" + id).hide();	
+	} else {
+		$('div.panel').each(function() {
+			$(this).hide();
+		});
+		$("#div" + id).show();
+	}
+	return false;
+}
+
+function GetURLParameter(sParam) {
+    var sPageURL = window.location.search.substring(1);
+    var sURLVariables = sPageURL.split('&');
+    for (var i = 0; i < sURLVariables.length; i++) 
+    {
+        var sParameterName = sURLVariables[i].split('=');
+        if (sParameterName[0] == sParam) 
+        {
+            return sParameterName[1];
+        }
+    }
+}
+
+function favourite(pid) {
+	var element = $('#fav-' + pid);
+
+	if (element.attr("class") == "favourite-active") {
+		db.transaction(function(tx) {
+			tx.executeSql("UPDATE phrases SET isFavourite = '0' WHERE pid = '" + pid + "'");
+		});
+		element.attr("src", "img/ic_favourite.png");
+		element.removeClass("favourite-active").addClass("favourite");
+	} else {
+		db.transaction(function(tx) {
+			tx.executeSql("UPDATE phrases SET isFavourite = '1' WHERE pid = '" + pid + "'");
+		});
+		element.attr("src", "img/ic_favourite_active.png");
+		element.removeClass("favourite").addClass("favourite-active");
+	}
+}
+
+
+function search () {
+	$('#main').empty();
+
+	var txt = $('#searchbox').val();
+
+	var lid = localStorage.getItem('lid');
+	var filePath = "http://sukhajata.com/audio/thai/female/";
+	if (lid == 3 || lid == 4){
+		filePath = "http://sukhajata.com/audio/lao/";
+	}
+
+	db.transaction(function(tx){
+		tx.executeSql("SELECT pid FROM phrases_v WHERE firstLanguage MATCH ?",
+			[txt], 
+			function(tx, results) {
+				var ids = "";
+				for (var i = 0; i < results.rows.length; i++) {
+					ids += "'" + results.rows[i].pid + "',";
+				}
+				ids = ids.slice(0,-1);
+
+				var sql = "SELECT * FROM phrases WHERE pid IN (" + ids + ")";
+				tx.executeSql(sql,[],
+					function(tx, results2) {
+						for (var i = 0; i < results2.rows.length; i++) {
+							var phrase = results2.rows[i];
+							var content = '<div class="frame" id="frame-' + phrase.pid + '" onclick="playaudio(\'' + phrase.pid + '\')" >' +
+							'<div class="thai">' + phrase.firstLanguage;
+							if (phrase.isFavourite == "1") {
+								content += '<img id="fav-' + phrase.pid + '" class="favourite-active" src="img/ic_favourite_active.png" onclick="favourite(\'' + phrase.pid + '\')"/>';
+							} else {
+								content += '<img id="fav-' + phrase.pid + '" class="favourite" src="img/ic_favourite.png" onclick="favourite(\'' + phrase.pid + '\')"/>';
+							}
+							content += '<br/>' + phrase.secondLanguage + '</div>' +
+							'<div class="english"><audio id="audio-' + phrase.pid + '" src="' + filePath + phrase.fileName + '.mp3"></audio>' + phrase.romanisation + '</br>';
+							if (phrase.literalTranslation != null && phrase.literalTranslation.length > 0) {
+								content = content + '<span style="font-style:italic">(' + phrase.literalTranslation + ')</span>';
+							}
+							content = content + '</div>';
+							if (phrase.notes != null && phrase.notes.length > 0) {
+								content = content + '<div class="notes">' + phrase.notes + '</div>';
+							}
+							$('#main').append(content + '</div></div>');
+						}
+					},function(tx, error) {
+						alert(error.message);
+					}
+				);
+
+			}, function(tx, error) {
+				alert(error.message);
+			}
+		);
+	});
+}
+
+function loadContent(sid) {
+	closeNav();
+	var lid = parseInt(localStorage.getItem('lid'));
+
+	$('#main').empty();
+	$('#subcategory').show();
+	$('#searchbox').hide();
+	$('#search').show();
+	$('#search-go').hide();
+
+	var filePath = "http://sukhajata.com/audio/thai/female/";
+	if (lid == 3 || lid == 4){
+		filePath = "http://sukhajata.com/audio/lao/";
+	}
+
+	db.transaction(function(tx) {
+		tx.executeSql("SELECT c_name FROM subcategories WHERE id = '" + sid + "'", [], function(tx, results){
+			var subcategoryName = results.rows[0].c_name;
+			$('#subcategory').html(subcategoryName);
+		});
+	});
+
+	db.transaction(function(tx) {
+		var sql = "SELECT * FROM phrases WHERE sid = '" + sid + "'";
+		tx.executeSql(sql, 
+		[], 
+		function(tx, results) {
+			for (var i = 0; i < results.rows.length; i++) {
+				var phrase = results.rows[i];
+				var content = '<div class="frame" id="frame-' + phrase.pid + '" onclick="playaudio(\'' + phrase.pid + '\')" >' +
+				'<div class="thai">' + phrase.firstLanguage;
+				if (phrase.isFavourite == "1") {
+					content += '<img id="fav-' + phrase.pid + '" class="favourite-active" src="img/ic_favourite_active.png" onclick="favourite(\'' + phrase.pid + '\')"/>';
+				} else {
+					content += '<img id="fav-' + phrase.pid + '" class="favourite" src="img/ic_favourite.png" onclick="favourite(\'' + phrase.pid + '\')"/>';
+				}
+				content += '<br/>' + phrase.secondLanguage +
+				'</div>' +
+				'<div class="english"><audio id="audio-' + phrase.pid + '" src="' + filePath + phrase.fileName + '.mp3"></audio>' + phrase.romanisation + '</br>';
+				if (phrase.literalTranslation != null && phrase.literalTranslation.length > 0) {
+					content = content + '<span style="font-style:italic">(' + phrase.literalTranslation + ')</span>';
+				}
+				content = content + '</div>';
+				if (phrase.notes != null && phrase.notes.length > 0) {
+					content = content + '<div class="notes">' + phrase.notes + '</div>';
+				}
+				$('#main').append(content + '</div></div>');
+			}
+		}, 
+		function(tx, error) {
+			alert(error.message);
+		});
+	});
+
+	$("html, body").animate({scrollTop:0}, "fast");
+}
+
+function changeLanguage(){
+	localStorage.setItem('lid', "");
+	window.location = "index.html";
+}
+
+function loadSideNav() {
+
+	var top = '<a class="home" href="#" onclick="return changeLanguage()"><img style="width:30px" src="img/home.ico"/></a>' +
+		'<a class="closebtn" href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>';
+	$('#sidenav').html(top);
+
+	db.transaction(function(tx) {
+		var sql = "SELECT * FROM categories";
+		tx.executeSql(sql, [], function(tx, results){
+			for (var i = 0; i < results.rows.length; i++) {
+				var category = results.rows[i];
+
+				var inner =  '<a class="side" href="#" onclick="return showPanel(' + category.id + ')">' + category.c_name + '</a>' +
+					'<div class="panel" id="div' + category.id + '" >' +
+					+ '</div>';
+				$('#sidenav').append(inner);
+				getSubCategories(category);
+			}
+			var bottom = '<a class="side" href="#" onclick="return showFavourites()" >Favourites</a>';
+			$('#sidenav').append(bottom);
+			openNav();
+		}, function (tx, error) {
+			alert("load side nav " + error.message);
+		});
+	});
+
+}
+
+function getSubCategories(result) {
+	db.transaction(function(tx) {
+		tx.executeSql(
+			"SELECT * FROM subcategories WHERE cid = ?", [result.id], function(tx, results2) {
+				var inner = "";
+				for (var j = 0; j < results2.rows.length; j++) {
+					var subcategory = results2.rows[j];
+					inner += '<a class="sub" id="' + subcategory.id + '" onclick="loadContent('  + subcategory.id + ')">' + subcategory.c_name + '</a>';
+				}
+
+				$('#div' + result.id).html(inner);
+			}, function(tx, error){
+				alert("get sub categories " + error.message);
+		});
+	});
+}
+
+function showFavourites() {
+	var lid = parseInt(localStorage.getItem('lid'));
+	closeNav();
+
+	$('#main').empty();
+	$('#subcategory').show();
+	$('#searchbox').hide();
+	$('#search').show();
+	$('#search-go').hide();
+
+	var filePath = "http://sukhajata.com/audio/thai/female/";
+	if (lid == 3 || lid == 4){
+		filePath = "http://sukhajata.com/audio/lao/";
+	}
+
+	db.transaction(function(tx) {
+		var sql = "SELECT * FROM phrases WHERE isFavourite = '1'";
+		tx.executeSql(sql, 
+		[], 
+		function(tx, results) {
+			for (var i = 0; i < results.rows.length; i++) {
+				var phrase = results.rows[i];
+				var content = '<div class="frame" id="frame-' + phrase.pid + '" onclick="playaudio(\'' + phrase.pid + '\')" >' +
+				'<div class="thai">' + phrase.firstLanguage;
+				if (phrase.isFavourite == "1") {
+					content += '<img id="fav-' + phrase.pid + '" class="favourite-active" src="img/ic_favourite_active.png" onclick="favourite(\'' + phrase.pid + '\')"/>';
+				} else {
+					content += '<img id="fav-' + phrase.pid + '" class="favourite" src="img/ic_favourite.png" onclick="favourite(\'' + phrase.pid + '\')"/>';
+				}
+				content += '<br/>' + phrase.secondLanguage +
+				'</div>' +
+				'<div class="english"><audio id="audio-' + phrase.pid + '" src="' + filePath + phrase.fileName + '.mp3"></audio>' + phrase.romanisation + '</br>';
+				if (phrase.literalTranslation != null && phrase.literalTranslation.length > 0) {
+					content = content + '<span style="font-style:italic">(' + phrase.literalTranslation + ')</span>';
+				}
+				content = content + '</div>';
+				if (phrase.notes != null && phrase.notes.length > 0) {
+					content = content + '<div class="notes">' + phrase.notes + '</div>';
+				}
+				$('#main').append(content + '</div></div>');
+			}
+		}, 
+		function(tx, error) {
+			alert(error.message);
+		});
+	});
+
+	$("html, body").animate({scrollTop:0}, "fast");
+}
+
+function openNav() {
+	document.getElementById("sidenav").style.width = "250px";
+}
+
+function closeNav() {
+	document.getElementById("sidenav").style.width = "0";
+}
+
+function openSearchBox() {
+	$('#subcategory').hide();
+	$('#searchbox').show();
+	$('#search').hide();
+	$('#search-go').show();
+}
+
+document.addEventListener('deviceready', function () {
+	var lid =  parseInt(localStorage.getItem('lid'));
+	var name = '';
+	
+	switch(lid) {
+		case 1 : //Thai for English
+        	name = 'th-en.db';
+        	break;
+    	case 2://Thai for German
+			name = 'th-ge.db'
+        	break;
+    	case 3://Lao for English
+        	name = 'la-en.db';
+        	break;
+    	case 4://Lao for French
+        	name = 'la-fr.db';
+        	break;
+    	case 5://English for Thai 
+			name = 'en-th.db';
+			break;
+		case 6: //German for Thai 
+			name = 'ge-th.db';
+			break;
+		case 7://Thai for French
+			name = 'th-fr.db';
+			break;
+		case 8://Thai for Russians
+			name = 'th-ru.db';
+			break;
+		case 9://Thai for Chinese
+			name = 'th-ch.db';
+			break;
+	}
+		
+	try {
+		/*db = window.sqlitePlugin.openDatabase({
+			name: name,
+			location: 'default',
+			androidDatabaseImplementation: 2
+		});*/
+		db = window.openDatabase(name, "1.0", name, 5 * 1024);
+
+		loadSideNav();
+
+		/*
+		if (AdMob) {
+			
+			var admobid = {};
+			if( /(android)/i.test(navigator.userAgent) ) { // for android & amazon-fireos
+				admobid = {
+					banner: 'ca-app-pub-8944555977163246/4042150625'
+				};
+			}
+			
+			AdMob.createBanner({
+				adId: admobid.banner,
+				position: AdMob.AD_POSITION.BOTTOM_CENTER,
+				autoShow: true 
+			});
+		}*/
+
+	} catch(error) {
+		alert(error);
+	} 
+	
+}, false);
+</script>
+</head>
+<body>
+	<div class="navbar">
+		<span class="menu" onclick="openNav()">&#9776;</span>
+		<span id="subcategory" class="subcategory"></span>
+		<input type="text" id="searchbox" class="searchbox"/>
+		<img class="search" src="img/search.png" onclick="openSearchBox()"/>
+		<img class="search-go" id="search-go" src="img/search-go.png" onclick="search()"/>
+	</div>
+	<div id="sidenav" class="sidenav">
+	</div>
+
+	<div id="main" class="main">
+	</div>
+
+	<script type="text/javascript" src="cordova.js"></script>
+    <script type="text/javascript" src="js/index.js"></script>
+</body>
+</html>

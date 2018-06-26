@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="utf-8">
+<head>
+<script src="js/jquery.js"></script>
+<script src="js/helper.js"></script>
+<style type="text/css">
+button.subcategory-1, button.subcategory-2, button.subcategory-3, button.subcategory-4, button.subcategory-5, button.subcategory-6, button.subcategory-7, button.subcategory-8 {
+	width:100%;
+	padding:7px;
+	border: none;
+	padding: 15px 32px;
+	text-align: center;
+	text-decoration: none;
+	display: inline-block;
+	margin-bottom:3px;
+	font-size: 16px;
+	cursor: pointer;
+}
+
+
+button.accordion-1,button.accordion-2, button.accordion-3, button.accordion-4 {
+    cursor: pointer;
+    padding: 18px;
+    width: 100%;
+    border: none;
+    text-align: left;
+    outline: none;
+    font-size: 16px;
+	margin-bottom:3px;
+    transition: 0.4s;
+}
+
+ button.accordion-5, button.accordion-6, button.accordion-7, button.accordion-8 {
+	cursor: pointer;
+    padding: 18px;
+    width: 100%;
+    border: none;
+    text-align: left;
+    outline: none;
+    font-size: 16px;
+	margin-bottom:3px;
+    transition: 0.4s;
+ }
+
+button.accordion-1, button.subcategory-1 {
+	background-color: #F78888;
+	color: #000;
+}
+
+/*
+button.accordion-1.active, button.accordion-1:hover, button.subcategory-1.active, button.subcategory-1:hover {
+    background-color: #ccc; 
+	color: #000;
+}*/
+
+button.accordion-2, button.subcategory-2 {
+	background-color: #F3D250;
+}
+
+/*
+button.accordion-2.active, button.accordion-2:hover, button.subcategory-2.active, button.subcategory-2:hover {
+    background-color: #ccc; 
+	color: #000;
+}*/
+
+button.accordion-3, button.subcategory-3 {
+	background-color: #ECECEC;
+}
+
+/*
+button.accordion-3.active, button.accordion-3:hover, button.subcategory-3.active, button.subcategory-3:hover {
+    background-color: #ccc; 
+	color: #000;
+}*/
+
+button.accordion-4, button.subcategory-4 {
+	background-color: #90CCF4;
+}
+
+/*
+button.accordion-4.active, button.accordion-4:hover, button.subcategory-4.active, button.subcategory-4:hover {
+    background-color: #ccc; 
+	color: #000;
+}*/
+
+button.accordion-5, button.subcategory-5 {
+	background-color: #5DA2D5;
+
+}
+
+button.accordion-5.active, button.accordion-5:hover, button.subcategory-5.active, button.subcategory-5:hover {
+    background-color: #ccc; 
+	color: #000;
+}
+
+button.accordion-6, button.subcategory-6 {
+	background-color: #C5CAE9;
+}
+
+button.accordion-7, button.subcategory-7 {
+	background-color: #4CAF50;
+}
+
+button.accordion-7, button.subcategory-8 {
+	background-color: #FFF9C4;
+}
+
+div.panel {
+    padding: 0 18px;
+    display: none;
+    background-color: white;
+}
+
+
+</style>
+<script>
+var db;
+
+function launchLesson(id) {
+	document.location = "lesson.html?id=" + id.toString();
+}
+
+function showPanel(id) {
+	$("#div" + id).toggle();
+}
+
+
+
+function loadContent(lanId) {
+	db.transaction(function(tx) {
+		tx.executeSql("SELECT * FROM categories", [], function(tx, results) {
+			for (var i = 0; i < results.rows.length; i++) {
+				$('#main').append('<button class="accordion-' + (i % 4 + 1) + '" onclick="showPanel(' + results.rows[i].id + ')">+ ' + results.rows[i].english + '</button>');
+				$('#main').append('<div class="panel" id="div' + results.rows[i].id + '" >');
+				
+				var sql = "SELECT * FROM subcategories WHERE cid = '" + results.rows[i].id + "'";
+				tx.executeSql(sql, [], function(tx, res) {
+					console.log(res);
+					for (var k = 0; k < res.rows.length; k++) {
+						var sid = res.rows[k].id;
+						$('#div' + res.rows[k].cid).append('<button class="subcategory-' + (k % 4 + 1) + '" id="' + sid + '" onclick="launchLesson(' + sid + ')">' + res.rows[k].english + '</button>');
+					}
+				});
+				
+				$('#main').append("</div>\n");
+			}
+		});
+	}
+}
+
+document.addEventListener('deviceready', function () {
+	var lid = localStorage.getItem('lanId');
+
+	if (lid == null || lid == undefined || lid == '') {
+		document.location = "db.html";
+	}
+
+	var name = getDBName(parseInt(lid));
+	//make sure db is set up
+	db = window.sqlitePlugin.openDatabase({
+			name: 'lao.db',
+			location: 'default',
+			androidDatabaseImplementation: 2
+		
+		
+		db.transaction(function(tx) {
+			tx.executeSql("SELECT COUNT(*) AS total FROM categories", [], function(tx, results) {
+					if (results.rows.item(0).total == 0) {
+						document.location = "db.html";
+					} 
+				}, function (tx, results) {
+					document.location = "db.html";
+			});
+		});
+	}
+	
+	loadContent(lan);
+
+}, false);
+</script>
+</head>
+<body>
+	<div id="main">
+	</div>
+	<script type="text/javascript" src="cordova.js"></script>
+	<script type="text/javascript" src="js/index.js"></script>
+</body>
+</html>

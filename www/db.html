@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="utf-8">
+<meta name="robots" content="index, follow">
+<head>
+<script src="js/jquery.js"></script>
+<script src="js/helper.js"></script>
+<link rel="stylesheet" type="text/css" href="css/spinner.css">
+<head>
+<style type="text/css">
+
+</style>
+<script>
+
+document.addEventListener('deviceready', function () {
+	var lid = parseInt(localStorage.getItem('lid'));
+	var name = getDBName(lid);	
+
+	try {
+		/*var db = window.sqlitePlugin.openDatabase({
+			name: name,
+			location: 'default',
+			androidDatabaseImplementation: 2
+		});*/
+		var db = window.openDatabase(name, "1.0", name, 5 * 1024);
+		var waiting = 3;
+		
+		setInterval(function() {
+			if (waiting == 0) {
+				location = "lesson.html";
+			}
+		}, 1000);
+		
+		$.ajax({
+			url : "http://sukhajata.com/el/categories.php",
+			data : {lanId : lid},
+			dataType: "json",
+			success: function (result) {
+				db.transaction(function (tx) {
+					tx.executeSql("DROP TABLE IF EXISTS categories");
+					
+					tx.executeSql("CREATE TABLE IF NOT EXISTS categories (id unique, c_name)");
+			
+					var count = result.length;						
+					for (var i in result) {
+						tx.executeSql("INSERT INTO categories (id, c_name) VALUES (?,?)", 
+							[result[i].id, result[i].c_name], 
+							function(tx, res) {
+								count--;
+								if (count == 0) {
+									waiting--;
+								}
+							}, function(tx, error) {
+								alert(error.message);
+							}
+						);
+					}
+					
+					/*
+					tx.executeSql("SELECT * FROM categories", [], function(tx, results) {
+						alert("categories " + results);
+					});*/
+					
+				});
+			}
+		});
+		
+		$.ajax({
+			url : "http://sukhajata.com/el/subcategories.php",
+			data : {lanId : lid},
+			dataType: "json",
+			success: function (result) {
+				db.transaction(function (tx) {
+					tx.executeSql("DROP TABLE IF EXISTS subcategories");
+				
+					tx.executeSql("CREATE TABLE IF NOT EXISTS subcategories (id unique, cid, c_name)");
+			
+					var count = result.length;
+					for (var i in result) {
+						tx.executeSql("INSERT INTO subcategories (id, cid, c_name) VALUES (?,?, ?)", 
+							[result[i].id, result[i].categoryId, result[i].c_name], 
+							function(tx, res){
+								count--;
+								if (count == 0) {
+									waiting--;
+								}
+							}, function(tx, error) {
+								alert(error.message);
+							}
+						);
+					}
+					
+					/*
+					tx.executeSql("SELECT * FROM subcategories", [], function(tx, results) {
+						alert("subcategories " + results);
+					});*/
+					
+				});
+			}
+		});
+		
+		
+		$.ajax({
+			url : "http://sukhajata.com/el/phrases.php",
+			data : {lanId : lid},
+			dataType: "json",
+			success: function (result) {
+				db.transaction(function (tx) {
+					tx.executeSql("DROP TABLE IF EXISTS phrases");
+					tx.executeSql("DROP TABLE IF EXISTS phrases_v");
+					tx.executeSql("CREATE TABLE IF NOT EXISTS phrases (pid unique, sid, firstLanguage, thai_F, thai_M, romanisation_F, romanisation_M, literalTranslation, notes, fileName_F, fileName_M, isFavourite)");
+					tx.executeSql("CREATE VIRTUAL TABLE phrases_v USING FTS3(pid, firstLanguage, literalTranslation)",
+						[],function(tx, result){}, 
+						function(tx, error){
+							alert("create error " + error.message);
+						}
+					);
+
+					var count = result.length;
+					for (var i in result) {
+						//$('#console').append(result[i]);
+						tx.executeSql("INSERT INTO phrases(pid, sid, firstLanguage, thai_F, thai_M, romanisation_F, romanisation_M, literalTranslation, notes, fileName_F, fileName_M, isFavourite) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)",
+						[result[i].pid, result[i].subCategoryId, result[i].firstLanguage, result[i].thai_F, result[i].thai_M, result[i].romanisation_F,result[i].romanisation_M, result[i].literalTranslation, result[i].notes, result[i].fileName_F, result[i].fileName_M, '0'],
+							function(tx, res) {
+								count--;
+								if (count == 0) {
+									waiting--;
+								}
+							}, 
+							function(tx, error) {
+								alert(error.message);
+							}
+						);
+
+						tx.executeSql("INSERT INTO phrases_v(pid, firstLanguage, literalTranslation) VALUES(?,?,?)",
+							[result[i].pid, result[i].firstLanguage, result[i].literalTranslation],
+							function(res){
+								
+							},
+							function(tx, error) {
+								alert("insert error " + error.message);
+							}
+						);
+					}
+						
+					/*
+					tx.executeSql("SELECT * FROM phrases", [], function(tx, results) {
+						alert("phrases " + results);
+					});*/
+					
+				});
+			}
+		});
+
+	} catch (err) {
+		alert(err);
+		$('#loader').hide();
+	}
+	
+	
+}, false);
+</script>
+</head>
+<body>
+	<div class="loading" id="loader"></div>
+
+<script type="text/javascript" src="cordova.js"></script>
+<script type="text/javascript" src="js/index.js"></script>
+
+</body>
+</html>
